@@ -1,7 +1,7 @@
 ---
-name: "? Weeks Chapter ? - [title]"
+name: "? Weeks - [title]"
 about: 이슈를 올릴 템플릿입니다.
-title: "? Weeks Chapter ? - [title]"
+title: "? Weeks - [title]"
 labels: ''
 assignees: ''
 
