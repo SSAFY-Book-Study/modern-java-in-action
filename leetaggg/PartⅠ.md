@@ -107,7 +107,7 @@ public int compare(Apple a1, Apple a2){
         });
 
 // 람다 표현식으로 구현
-        inventort.sort((Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight()));
+inventort.sort((Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight()));
 ```
 
 ---
