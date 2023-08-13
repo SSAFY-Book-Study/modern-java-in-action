@@ -43,12 +43,12 @@
 ```java
 // 디렉터리에서 모든 숨겨진 파일을 필터링하는 코드
 File[] hiddenFiles = new File(".").listFiles(new FileFilter(){
-	public boolean accept(File file){
-		return file.isHidden();
-	}
-});
+public boolean accept(File file){
+        return file.isHidden();
+        }
+        });
 // 메서드 참조 활용(::)
-File[] hiddenFiles = new File(".").listFiles(File::isHidden); // File 클래스의 isHidden 메서드 참조
+        File[] hiddenFiles = new File(".").listFiles(File::isHidden); // File 클래스의 isHidden 메서드 참조
 ```
 
 - (::) 메서드 참조를 이용하여 메서드의 파라미터에 직접 전달 할 수 있음
@@ -101,13 +101,13 @@ Optional<T> 클래스를 통해 NullPointer 예외를 피할 수 있음
 ```java
 // Comparator을 익명 클래스로 구현하여 inventory를 정렬(compare 추상 메서드)
 inventory.sort(new Comparator<Apple>(){
-	public int compare(Apple a1, Apple a2){
-		return a1.getWeight.compareTo(a2.getWeight));
-	}
-});
+public int compare(Apple a1, Apple a2){
+        return a1.getWeight.compareTo(a2.getWeight));
+        }
+        });
 
 // 람다 표현식으로 구현
-inventort.sort((Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight()));
+        inventort.sort((Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight()));
 ```
 
 ---
@@ -153,7 +153,7 @@ inventort.sort((Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight()))
 
 - **메서드 시그니처**
 
-**메서드의 이름** + **메서드의 파라미터(매개 변수)** 이며 오버로딩 시 메서드의 차이 식별하기 위해 필요
+**메서드의 이름** + **메서드의 파라미터(매개 변수)**이며 오버로딩 시 메서드의 차이 식별하기 위해 필요
 
 ```java
 // Ex)
@@ -182,25 +182,26 @@ public String Hello(String name){
 - T → R
 
 **예외처리**
-- 예외를 던지는 람다 표현식을 만들 경우, 확인된 예외를 선언하는 함수형 인터페이스를 직접 정의하거나, 람다 표현식을 try~catch 블록으로 감싸야함
----
 
-## 형식 검사, 형식 추론, 제약
+- 예외를 던지는 람다 표현식을 만들 경우, 확인된 예외를 선언하는 함수형 인터페이스를 직접 정의하거나, 람다 표현식을 try~catch 블록으로 감싸야함
+
+---
 
 ## 메서드 참조
 
 - 메서드 참조를 통해 람다처럼 다른 메서드에 전달할 수 있음
 - 람다에서 다른 메서드를 호출하는 것보다 메서드 참조를 통한 호출이 간결하여 가독성이 높음
+- 메서드 앞에 구분자(::)를 붙이는 방식으로 메서드 참조 활용 가능
 
 ```java
 // 람다와 메서드 참조의 차이 예제
 // 람다의 경우
 (Apple apple) -> apple.getWeight()
 () -> Thread.currentThread().dumpStack()
+(str, i) -> str.subString(i)
 
-// 메서드 참조의 경우
-Apple::getWeight
+// 메서드 참조의 경우 (::)
+Apple::getWeight // Apple 클래스의 getWeight 참조
 Thread.currentThread::dumpStack
+String::subString // String 클래스의 subString 메서드 참조
 ```
-
-### 메서드 참조를 만드는 방법
