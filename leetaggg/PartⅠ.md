@@ -153,7 +153,7 @@ inventort.sort((Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight()))
 
 - **메서드 시그니처**
 
-**메서드의 이름** + **메서드의 파라미터(매개 변수)**이며 오버로딩 시 메서드의 차이 식별하기 위해 필요
+**메서드의 이름** + **메서드의 파라미터(매개 변수)** 이며 오버로딩 시 메서드의 차이 식별하기 위해 필요
 
 ```java
 // Ex)
@@ -181,4 +181,26 @@ public String Hello(String name){
 - apply() 추상 메서드를 정의하며, 제너릭 형식의 T의 객체를 받아 R 객체를 반환함
 - T → R
 
+**예외처리**
+- 예외를 던지는 람다 표현식을 만들 경우, 확인된 예외를 선언하는 함수형 인터페이스를 직접 정의하거나, 람다 표현식을 try~catch 블록으로 감싸야함
 ---
+
+## 형식 검사, 형식 추론, 제약
+
+## 메서드 참조
+
+- 메서드 참조를 통해 람다처럼 다른 메서드에 전달할 수 있음
+- 람다에서 다른 메서드를 호출하는 것보다 메서드 참조를 통한 호출이 간결하여 가독성이 높음
+
+```java
+// 람다와 메서드 참조의 차이 예제
+// 람다의 경우
+(Apple apple) -> apple.getWeight()
+() -> Thread.currentThread().dumpStack()
+
+// 메서드 참조의 경우
+Apple::getWeight
+Thread.currentThread::dumpStack
+```
+
+### 메서드 참조를 만드는 방법
