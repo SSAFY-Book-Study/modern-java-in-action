@@ -107,7 +107,7 @@ public int compare(Apple a1, Apple a2){
         });
 
 // 람다 표현식으로 구현
-        inventort.sort((Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight()));
+inventort.sort((Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight()));
 ```
 
 ---
@@ -153,7 +153,7 @@ public int compare(Apple a1, Apple a2){
 
 - **메서드 시그니처**
 
-**메서드의 이름** + **메서드의 파라미터(매개 변수)**이며 오버로딩 시 메서드의 차이 식별하기 위해 필요
+**메서드의 이름** + **메서드의 파라미터(매개 변수)** 이며 오버로딩 시 메서드의 차이 식별하기 위해 필요
 
 ```java
 // Ex)
