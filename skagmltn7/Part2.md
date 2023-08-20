@@ -34,7 +34,7 @@
 
 <h4>퀴즈</h4>
 
-1. 2011년에 일어난 모든 트랜잭션을 찾아 값을 오름차순으로 정리하시오.<br>
+1. **2011년에 일어난 모든 트랜잭션을 찾아 값을 오름차순으로 정리하시오.<br>**
 
 ```java
 Optional<Transaction> TransactionsIn2011 = transactions.stream()
@@ -59,7 +59,7 @@ Optional<Transaction> TransactionsIn2011 = transactions.stream()
 
   ```
 
-2. 거래자가 근무하는 모든 도시를 중복 없이 나열하시오.<br>
+2. **거래자가 근무하는 모든 도시를 중복 없이 나열하시오.<br>**
 
 ```java
 Optional<List<String>> cities = transactions.stream() // Stream<Transaction>
@@ -69,7 +69,7 @@ Optional<List<String>> cities = transactions.stream() // Stream<Transaction>
 
 ```
 
-3. 케임브리지에서 근무하는 모든 거래자를 찾아서 이름순으로 정렬하시오.<br>
+3. **케임브리지에서 근무하는 모든 거래자를 찾아서 이름순으로 정렬하시오.<br>**
 
 ```java
 Optional<List<Trader>> tranderName = transactions.stream() // Stream<Transaction>
@@ -81,7 +81,7 @@ Optional<List<Trader>> tranderName = transactions.stream() // Stream<Transaction
 
 ```
 
-4. 모든 거래자의 이름을 알파벳순으로 정렬해서 반환하시오.<br>
+4. **모든 거래자의 이름을 알파벳순으로 정렬해서 반환하시오.<br>**
 
 ```java
 String NameSortedByAlphabet = transactions.stream()  // Stream<Transaction>
@@ -104,7 +104,7 @@ String NameSortedByAlphabet = transactions.stream() // Stream<Transaction>
                                     .collect(joining()) // String
 ```
 
-5. 밀라노에 거래자가 있는가?<br>
+5. **밀라노에 거래자가 있는가?<br>**
 
 ```java
 boolean isInMilan = transactions.stream() // Stream<Transaction>
@@ -123,7 +123,7 @@ boolean isInMilan = transactions.stream() // Stream<Transaction>
 
 ```
 
-6. 케임브리지에 거주하는 거래자의 모든 트랜잭션값을 출력하시오.<br>
+6. **케임브리지에 거주하는 거래자의 모든 트랜잭션값을 출력하시오.<br>**
 
 ```java
 transaction.stream // Stream<Transaction>
@@ -132,7 +132,7 @@ transaction.stream // Stream<Transaction>
             .foreach(System::println) // 출력
 ```
 
-7. 전체 트랜잭션 중 최댓값은 얼마인가?<br>
+7. **전체 트랜잭션 중 최댓값은 얼마인가?<br>**
 
 ```java
 Optional<Integer> transactionMaxVal = transaction.stream() // Stream<Transaction>
@@ -140,7 +140,7 @@ Optional<Integer> transactionMaxVal = transaction.stream() // Stream<Transaction
                                     .reduce(Integer::max) // Integer
 ```
 
-8. 전체 트랜잭션 중 최솟값은 얼마인가?<br>
+8. **전체 트랜잭션 중 최솟값은 얼마인가?<br>**
 
 ```java
 Optional<Integer> transactionMinVal = transaction.stream() // Stream<Transaction>
@@ -149,7 +149,7 @@ Optional<Integer> transactionMinVal = transaction.stream() // Stream<Transaction
 
 ```
 
-- 최솟값 / 최댓값을 구하는 min / max<br>
+- **최솟값 / 최댓값을 구하는 min / max<br>**
 
 ```java
 // 7.1. Stream을 이용하y는 경우
