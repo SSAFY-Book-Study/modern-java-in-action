@@ -118,7 +118,6 @@ boolean isInMilan = transactions.stream() // Stream<Transaction>
 
 ```java
 boolean isInMilan = transactions.stream() // Stream<Transaction>
-                                .map() // Stream<Trader>
                                 .anyMatch(transaction -> transaction.getTrader().getCity().eqauls("Milan")) // boolean
 
 ```
@@ -152,7 +151,7 @@ Optional<Integer> transactionMinVal = transaction.stream() // Stream<Transaction
 - **최솟값 / 최댓값을 구하는 min / max<br>**
 
 ```java
-// 7.1. Stream을 이용하y는 경우
+// 7.1. Stream을 이용하는 경우
 .max(comparing())
 
 Optional<Integer> transactionMinVal = transaction.stream() // Stream<Transaction>
