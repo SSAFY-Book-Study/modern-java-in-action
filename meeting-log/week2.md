@@ -89,4 +89,36 @@ A.데이터 원본자체에서 사이즈의 변경이 없기 때문에 연산최
 
 ---
 
+## 이슈6 [Collectors.toMap에 대해 궁금합니다]
+1. 안건을 올린 이유 발표
+- 그룹화 메서드에서 groupingBy, partitioningBy를 통해 그룹화를 하는데, 원래 Collectors.toMap으로 그룹화하는 방식을 알고있었지만 책에서 다루지 않아 어떤 차이가 있는지 궁금했습니다. 
+  
+2. 안건에 대해 답변자 발표 및 설명 요약
+
+Collectors에서 제공하는 메서드는 컬렉션을 반환하는 메서드들이 있ek
+toMap은 Map을 반환하지만 4가지 인자를 이해하고 사용해야 한다
+- 인자 : keyMapper 와 valueMapper 정의 필요
+- toMap 메서드는 중복을 자동으로 필터링하지 X → 키값이 중복될 경우 IllegalStateException
+- mergeFunction() : 동일한 키로 인해 충돌 발생시, 어떠한 value를 취할 것인지 결정할 때 사용
+- Supplier ****mapFactory : Collectors.toMap() 메서드를 통해 LinkedHashMap( 순서유지 )을 생성하고 싶은 경우 4st 인자로 사용 가능
+toMap을 하면 중복키에 대한 추가적인 처리가 필요할 수 있다
+
+단점
+- Key값 중복 시 에러
+  - 해결 방법 MergeFunction
+- 새로운 key값에 대한 ArrayList 오버헤드
+- 병합 연산에 의한 성능 저하 
+
+groupingBy() & partitioningBy()
+partitioningBy: true, false 키 값이 정해진 특수한 그룹화로 groupingBy와 유사
+
+groupingBy는 그룹화를 목적으로 만들었기 때문에 그룹화에 최적화되어있음
+
+4.  Q n A 및 회의록 기록
+
+groupingBy에서도 미리 선언해놓은 Map을 전달할 수 있나요?
+네 가능합니다 -> MapFactory에 참조가 가능하고 merge과정도 알아보면 좋을 것 같습니다 (어떻게 최적화하는지?)
+
+
+
 
