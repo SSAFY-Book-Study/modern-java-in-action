@@ -210,4 +210,262 @@ moviesToCount.merge(movieName, 1L, (key, count) -> count + 1L);  // 두 번째 �
 - Map 인터페이스는 자주 사용하는 패턴과 버그를 방지할 수 있도록 다양한 디폴트 메서드를 지원
 - `ConcurrentHashMap`은 Map에서 상속받은 새 디폴트 메서드를 지원함과 동시에 스레드 안전성도 제공
 
+## Chapter9 리팩터링, 테스팅, 디버깅
+가독성과 유연성을 높이려면 기존 코드를 어떻게 리팩터링해야 하는지 설명한다
+람다 표현식으로 `전략`, `템플릿 메서드`, `옵저버`, `의무 체인`, `팩토리` 등의 객체지향 디자인 패턴을 어떻게 간소화할 수 있는지도 살펴본다
 
+- 익명 클래스를 람다 표현식으로 리팩터링
+- 람다 표현식을 메서드 참조로 리팩터링
+- 명령형 데이터 처리를 스트림으로 리팩터링
+
+### 익명 클래스를 람다 표현식으로 리팩터링
+```java
+Runnable r1 = new Runnable() {    // 익명 클래스를 사용한 이전 코드
+    public void runt() {
+        System.out.println("Hello");
+    }
+}
+```
+```java
+Runnable r2 = () -> System.out.println("Hello");
+```
+모든 익명 클래스를 람다 표현식으로 변환할 수 있는 것은 아니다
+1. 익명 클래스에서 사용한 this와 super는 람다 표현식에서 다른 의미를 가짐
+    - 익명 클래스에서 this는 자신, 람다에서는 람다를 감싸는 클래스가 this 
+2. 익명 클래스는 감싸고 있는 클래스의 변수를 가릴 수 있다(섀도 변수)
+    - 람다 표현식으로는 변수를 가릴 수 없다
+  
+```java
+int a = 10;
+Runnable r1 = new Runnable() {    // 익명 클래스를 사용한 이전 코드
+    public void runt() {
+        int a = 2;    // 정상 작동
+        System.out.println("Hello");
+    }
+}
+Runnable r2 = () -> {
+        int a = 2;    // 컴파일 에러
+        System.out.println("Hello");
+```
+
+3. 익명 클래스를 람다 표현식으로 바꾸면 콘텍스트 오버로딩에 따른 모호함이 초래될 수 있음
+```java
+public static void doSomething(Runnable r) {r.run();}
+public static void doSomething(Task r) {r.execute();}
+
+doSomething(new Task() {
+    public void execute() {
+        System.out.println("Danger danger!!");
+    }
+}
+
+// doSomething(() -> System.out.println("Danger danger!!"));    // Runnable, Task 모두 대상 형식이 될 수 있으므로 문제 발생
+doSomething((Task)() -> System.out.println("Danger danger!!"));    // 명시적 형변환을 이용해 모호함 제거
+```
+
+### 람다 표현식을 메서드 참조로 리팩터링
+람다 표현식을 별도의 메서드로 추출한 다음 메서드 참조로 리팩터링할 수 있다
+메서드 참조로 리팩터링하면 코드가 간결하고 의도도 명확해진다
+특히 메서드 참조와 조화를 이루도록 설계된 정적 헬퍼 메서드(`comparing`, `maxBy`, `sum`, `maximum`)를 활용하는 것도 좋다
+혹은 내장 컬렉터를 이용하면 코드 자체로 문제를 명화하게 설명할 수 있음
+```java
+int totalCalories =
+    menu.stream().map(Dish::getCalories)
+                    .reduce(0, (c1, c2) -> c1 + c2);
+
+int totalCalories = menu.stream().collect(summingInt(Dish::getCalories));
+```
+
+### 명령형 데이터 처리를 스트림으로 리팩터링
+이론적으론 반복자를 이용한 기존의 모든 컬렉션 처리 코드를 스트림API로 바꿔야 한다고 한다
+스트림 API는 데이터 처리 파이프라인의 의도를 명확ㅎ히 보여주며 `쇼트서킷`과 `게으름`이라는 강력한 최적화뿐 아니라 멀티코어 아키텍쳐를 활용할 수 있는 지름길을 제공한다
+
+```java
+List<String> dishNames = new ArrayList<>();
+for(Dish dish : menu) {
+        if(dish.getCalories() > 300) {
+            dishNames.add(dish.getName());
+        }
+}
+```
+명령형 코드의 `break`, `continue`, `return` 등의 제어 흐름문을 모두 분석해서 같은 기능을 수행하는 스트림 연산으로 유추해야 하므로 명령형 코드를 스트림 API로 바꾸는 것은 쉬운일이 아니다
+```java
+menu.parallelStream()
+    .filter(d -> d.getCalories() > 300)
+    .map(Dish::getName)
+    .collect(toList());
+```
+
+람다 표현식을 이용하려면 함수형 인터페이스가 필요하다 따라서 함수형 인터페이스를 코드에 추가해야 하는데, `조건부 연기 실행` 과 `실행 어라운드` 두 가지 자주 사용하는 패턴으로 리팩터링을 살펴본다
+
+#### 조건부 연기 실행
+코드 내부에 제어 흐름문이 복잡하게 얽힌 코드를 흔히 볼 수 있다
+
+```java
+if(logger.isLoggable(Log.FINER)) {
+    logger.finer("Problem" + generateDiagnostic());
+}
+```
+불필요한 if문을 제거할 수 있으며 logger의 상태를 노출할 필요도 없도록 `Supplier`를 인수로 갖는 오버로드된 log메서드를 제공
+```java
+public void log(Level level, Supplier<String> msgSupplier) {
+    if(logger.isLoggable(level)) {
+        log(level, msgSupplier.get());    // <- 람다 실행
+    }    
+```
+#### 실행 어라운드
+매번 같은 준비, 종료 과정을 반복적으로 수행하는 코드가 있다면 이를 람다로 변환할 수 있다
+
+(1) 실행 어라운트 패턴의 구현
+```java
+public String processFile() throw IOException {
+    try (
+      BufferedReader br = new BufferedReader(new FileReader("test.txt"))) {
+      return br.readLine(); // 실제 작업을 수행
+    }
+}
+``` 
+
+(2) 동작 파라미터화
+
+위 (1)번 코드에서는 파일의 한줄씩 읽어들인다. 만약 파일을 한번에 두줄을 읽으려면 (실제 작업을 수정하려면) 기존의 설정/정리 과정은 재사용하고 실제 작업을 수행하는 한 줄의 코드만 수정하면 된다. 우리는 processFile의 동작을 파라미터화 시킬 수 있다.
+```java
+String result = processFile((BufferedReader br) -> br.readLine() + br.readLine());
+```
+
+(3) 함수형 인터페이스
+```java
+@FunctionalInterface
+public interface BufferedReaderProcessor {
+  String process(BufferedReader b) throws IOExeption;
+}
+
+// 위 함수형 인터페이스를 processFile 메서드의 인수로 전달한다.
+public String processFile(BufferedReaderProcessor p) throws IOException {
+  ...
+}
+```
+
+(4) 동작 실행
+람다 표현식으로 함수형 인터페이스의 추상 메서드 구현을 직접 전달할 수 있으며, 전달된 코드는 함수형 인터페이스의 인스턴스로 전달된 코드와 같은 방식으로 처리한다.
+```java
+public String processFile(BufferedReaderProcessor p) throws IOException {
+  try (
+    BufferedReader br = new BufferedReader(new FileReader("test.txt"))) {
+      return p.process(br);
+    }
+  )
+}
+```
+
+(5) 람다 전달
+이제 람다를 사용해서 다양한 동작을 processFile 메서드로 전달할 수 있다.
+```java
+String oneLine = processFile((BufferedReader br) -> br.readLine());
+String twoLines = processFile((BufferedReader br) -> br.readLine() + br.readLine());
+```
+
+- 람다로 `BufferedReader` 객체의 동작을 결정할 수 있는 것은 함수형 인터페이스 `BufferedReaderProcessor` 덕분이다
+
+### 람다로 객체지향 디자인 패턴 리팩터링
+디자인 패턴은 공통적인 소프트웨어 문제를 설계할 때 재사용할 수 있는 검증된 청사진을 제공한다
+디자인 패턴에 람다 표현식이 더해지면 색다른 기능을 발휘할 수 있다
+
+#### 전략패턴
+
+![스크린샷 2023-08-26 오후 9 16 50](https://github.com/dpwns523/modern-java-in-action/assets/84260096/97ff5ba0-4e8b-463c-9700-c1fb7185c75c)
+
+- 알고리즘을 나타내는 인터페이스(Strategy 인터페이스)
+- 다양한 알고리즘을 나타내는 한 개 이상의 인터페이스 구현(ConcreteStrategyA, ConcreteStrategyB 같은 구체적인 구현 클래스)
+- 전략 객체를 사용하는 한 개 이상의 클라이언트
+
+```java
+Validator numericValidator =
+    new Validator((String s) -> s.matches("[a-z]+"));    // 람다 직접 전달
+boolean b1 = numericValidator.validate("aaaa");
+Validator lowerValidator =
+    new Validator((String s) -> s.matches("\\d+"));    // 람다 직접 전달
+boolean b2 = lowerValidator.validate("bbbb");
+```
+- 람다 표현식을 이용하면 전략 디자인 패턴에서 발생하는 자잘한 코드를 제거할 수 있다 -> 코드 조각을 캡슐화한다
+
+#### 템플릿 메서드
+템플릿 메서드는 '이 알고리즘을 사용하고 싶은데 그대로는 안 되고 조금 고쳐야 하는' 상황에 적합하다
+
+다음은 온라인 뱅킹 애플리케이션의 동작을 정의하는 추상 클래스다
+```java
+abstract class OnlineBanking {
+    public void processCustomer(int id) {
+        Customer c = Database.getCustomerWithId(id);
+        makeCustomerHappy(c);
+    }
+    abstract void makeCustomerHaapy(Customer c);
+}
+```
+
+람다나 메서드 참조로 알고리즘에 추가할 다양한 컴포넌트를 구현할 수 있다
+
+```java
+public void processCustomer(int id, Consumer<Customer> makeCustomerHappy) {
+    Customer c = Database.getCustomerWithId(id);
+    makeCustomerHappy.accept(c);
+}
+```
+이제 `onlineBanking` 클래스를 상속받지 않고 직접 람다 표현식을 전달해서 다양한 동작을 추가할 수 있음
+```java
+new OnlineBankingLambda().processCustomer(1337, (Customer c) -> System.out.println("Hello " + c.getName()));
+```
+
+#### 옵저버 패턴
+옵저버 패턴은 어떤 이벤트가 발생했을 때 한 객체(**주체**)가 다른 객체 리스트(**옵저버**)에 자동으로 알림을 보내야 하는 상황에서 사용된다
+사용자가 버튼을 클릭하면 옵저버에 알림이 전달되고 정해진 동작이 수행
+
+다양한 옵저버를 그룹화할 Observer 인터페이스가 필요한데, Observer 인터페이스는 새로운 호출이 있을 때 주체가 호출할 수 있도록 notify라고 하는 하나의 메서드를 제공한다
+
+- 람다 표현식을 옵저버 디자인 패턴에 적용하여 다양한 `notify`를 구현할 수 있다
+
+하지만, 무조건 람다 표현식을 사용해야 하진 않다
+- 실행해야할 동작이 간단하면 람다 표현식으로 불필요한 코드를 제거하는 것이 바람직
+- 옵저버가 상태를 가지며, 여러 메서드를 정의하는 등 복잡하다면 람다 표현식보다 기존의 클래스 구현방식을 고수하는 것이 바람직할 수 있음
+
+#### 의무 체인
+작업 처리 객체의 체인(동작 체인 등)을 만들 때는 의무 체인 패턴을 사용한다
+- 한 객체가 어떤 작업을 처리한 다음 다른 객체로 결과를 전달하고, 다른 객체도 해야 할 작업을 처리한 다음에 또 다른 객체로 전달하는 식
+
+작업 처리 객체를 andThen 메서드로 함수를 조합해서 체인을 만들 수 있음
+
+#### 팩토리
+인스턴스화 로직을 클라이언트에 노출하지 않고 객체를 만들 때 팩토리 디자인 패턴을 사용
+다양한 상품을 만드는 `Factory` 클래스를 보자
+```java
+pbulc class ProductFactory {
+    pbulic static Product createProduct(String name) {
+        switch(name) {
+            case "loan" : return new Loan();
+            case "stock" : return new Stock();
+            ...
+        }
+    }
+}
+```
+람다 표현식을 사용하면 상품명을 생성자로 연결하는 Map을 만들어서 코드를 재구현할 수 있다
+```java
+final static Map<String, Supplier<Product>> map = new HashMap<>();
+static {
+    map.put("loan", Loan::new);
+    ...
+}
+```
+
+```java
+pbulc class ProductFactory {
+    pbulic static Product createProduct(String name) {
+        Supplier<Product> p = map.get(name);
+        if(p != null) return p.get();
+        throw new IllegalArgumentException("No such product " + name);
+    }
+}
+```
+상품 생성자로 여러 인수를 전달하는 상황에서는 단순한 Supplier 함수형 인터페이스로는 이 문제를 해결할 수 없음
+
+세 인수를 받는 상품의 생성자가 있다면 `TriFunction`이라는 특별한 함수형 인터페이스를 만들어야 한다
