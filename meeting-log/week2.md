@@ -186,7 +186,8 @@ groupingBy에서도 미리 선언해놓은 Map을 전달할 수 있나요?
 ## 이슈 10 Collector vs. Collectors
 
 1. 안건을 올린 이유 발표
-- Collectors와 Collector의 차이
+- Collectors와 Collector를 정말 많이 들어봤지만, 정확한 정의를 알고 있지 않아 헷갈리는 부분이 있었고 이에 따라 개념을 정리코자 이슈를 올리게 되었습니다.
+
 2. 안건에 대해 답변자 발표 및 설명 요약
 - Collector -> Interface, Reduction operation의 결과를 받을 세 가지 매개 변수를 가짐 -> 누적된 결과를 가질 네 가지의 함수를 가짐
 - Supplier -> 새로운 결과 컨테이너 생성
