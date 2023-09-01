@@ -182,3 +182,26 @@ groupingBy에서도 미리 선언해놓은 Map을 전달할 수 있나요?
     -  병렬 환경에서 두 개의 쓰레드가 하나의 값에 동시에 접근 할 때, 순서를 정하는 문제
   - 리듀스와 콜렉터 중 어떤것을 사용해야 하나요?
     - 초기값이 변하지 않으려면 콜렉터를 써야하고, 초기값이 바뀌어도 상관 없는 것에 reduce를 사용해야 합니다.
+   
+## 이슈 10 Collector vs. Collectors
+
+1. 안건을 올린 이유 발표
+- Collectors와 Collector의 차이
+2. 안건에 대해 답변자 발표 및 설명 요약
+- Collector -> Interface, Reduction operation의 결과를 받을 세 가지 매개 변수를 가짐 -> 누적된 결과를 가질 네 가지의 함수를 가짐
+- Combiner -> 결과를 결합
+- Finisher 
+-> Stream에서 최종 연산을 수행하는 내부 함수에 Collector를 받음, 이 인터페이스를 구현
+
+- Collectors : 클래스
+- Counting : 스트림의 개수
+- 형에 맞는 합을 반환해주는 함수를 가짐
+- Averaging :
+- Summarizing :
+- groupyingBy()
+- partitioningBy()
+- Predicate : 두 가지로 분류가 가능
+- toList()
+- 
+3. Q n A 및 회의록 기록
+  - Collector는 인터페이스, Collectors는 구현체
