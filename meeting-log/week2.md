@@ -189,19 +189,22 @@ groupingBy에서도 미리 선언해놓은 Map을 전달할 수 있나요?
 - Collectors와 Collector의 차이
 2. 안건에 대해 답변자 발표 및 설명 요약
 - Collector -> Interface, Reduction operation의 결과를 받을 세 가지 매개 변수를 가짐 -> 누적된 결과를 가질 네 가지의 함수를 가짐
-- Combiner -> 결과를 결합
-- Finisher 
--> Stream에서 최종 연산을 수행하는 내부 함수에 Collector를 받음, 이 인터페이스를 구현
+- Supplier -> 새로운 결과 컨테이너 생성
+- Accumulator -> 새로운 데이터 요소를 결과 컨테이너에 통합
+- Combiner -> 두 개의 결과 컨테이너를 하나로 결합
+- Finisher -> 컨테이너에서 선택적 최종 변환 수행
+-> Stream에서 최종 연산에 해당하는 collect() 함수의 파라미터로 Collector를 받는다.
+  이 인터페이스의 구현을 통해 어떻게 reduce를 진행할지 결정
 
-- Collectors : 클래스
-- Counting : 스트림의 개수
-- 형에 맞는 합을 반환해주는 함수를 가짐
-- Averaging :
-- Summarizing :
-- groupyingBy()
-- partitioningBy()
-- Predicate : 두 가지로 분류가 가능
-- toList()
-- 
+-> Collectors : 클래스
+- Counting : 스트림의 개수 반환
+- SummingInt, SummingLong, SummingDouble 등 형에 맞는 합을 반환해주는 함수를 가짐
+- Averaging : int, long, double형 별로 평균 반환
+- Summarizing : int, long, double 등 형에 맞는 통계 반환
+- groupyingBy, collectingAndThen -> 다단계로 그룹화 하기 위해 필요. **다수준 그룹화**
+- partitioningBy : 그룹화와 비슷하지만, predicate를 파라미터로 갖고, true, false 두 가지로만 분류가 가능하다.
+- toList, toSet, toCollection : 스트림을 이름의 형에 맞게 반환한다.
+cf) Collectors.toList()와 같은 메서드의 경우 반환형이 ``` <T> Collector<T, ?, List<T>> ``` 이기에 stream.collect()에 매개변수로 줄 수 있음.
+
 3. Q n A 및 회의록 기록
   - Collector는 인터페이스, Collectors는 구현체
