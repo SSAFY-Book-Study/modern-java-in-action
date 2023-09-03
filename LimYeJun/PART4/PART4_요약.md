@@ -401,4 +401,319 @@ public static Optional<Integer> stringToInt(String s) {
 - Optional로 값이 없는 상황을 적절하게 처리하도록 강제할 수 있다 즉, Optional로 예상치 못한 NPE를 방지할 수 있다
 - Optional을 활용하면 더 좋은 API를 설계할 수 있음 즉, 사용자는 메서드의 시그니처만 보고 Optional값이 사용되거나 반환되는지 예측할 수 있다
 
+## Chapter12 새로운 날짜와 시간 API
+
+자바8에서는 지금까지의 날짜와 시간 문제를 개선하는 새로운 날짜와 시간 API를 제공
+`java.util.Date`는 자바 1.0에서부터 제공한 클래스로 
+- 특정 시점을 날짜가 아닌 밀리초로 표현
+- 1900년을 기준으로 하는 오프셋
+- 0에서 시작하는 달 인덱스 등 모호한 설계
+- 결과가 밀리초로 직관적이지 못함
+`Date` 클래스에 문제가 있음을 알고 있었지만 하위 버전에 대한 호환성을 깨뜨리지 않고 해결할 수 없었기에 새로운 클래스를 제공하기 시작하였음
+
+### LocalDate, LocalTime, Instant, Duration, Period 클래스
+
+LocalDate, LocalTime, Instant, Duration, Period 클래스를 사용하여 간단한 날짜와 시간 간격을 정의할 수 있다
+
+### LocalDate와 LocalTime 사용
+
+- LocalDate 인스턴스는 시간을 제외한 날짜를 표현하는 불변객체이다
+- LocalDate 객체는 어떤 시간대 정보도 포함하지 않는다
+- 정적 팩토리 메소드 of를 활용하여 LocalDate 인스턴스를 만들 수 있다
+- 팩토리 메소드 now()는 시스템 시계의 정보를 이용해 현재 날짜 정보를 얻는다
+
+```java
+LocalDate date = LocalDate.of(2017, 9, 21)
+date.getYear()
+...
+```
+- 시간대를 포함한 클래스는 LocalTime을 사용한다.
+```java
+LocalTime time = LocalTime.of(13, 45, 20) // 13:45:20
+time.getHour()
+...
+```
+- 날짜와 시간 문자열로 LocalDate와 LocalTime의 인스턴스를 만드는 방법도 있다.
+```java
+LocalDate date = LocalDate.parse("2017-09-21")
+LocalTime time = LocalTime.parse("13:45:20")
+```
+- parse 메서드에 DateTimeFormatter를 전달할 수 있다.
+
+### 날짜와 시간 조합
+LocalDateTime은 LocalDate와 LocalTime을 쌍으로 갖는 복합 클래스다
+따라서 날짜와 시간을 모두 표현할 수 있다
+```java
+LocalDateTime dt1 = LocalDateTime.of(2017, Month.SEPTEMBER, 21, 13, 45, 20);
+LocalDateTime dt2 = LocalDateTime.of(date, time);
+
+dt1.toLocalDate();    // <- 2017-09-21
+dt2.toLocalTime();    // <- 13:45:20;
+```
+
+### Instant 클래스 : 기계의 날짜와 시간
+Instant 클래스는 유닉스 에포크 시간(1970년 1월 1일 0시 0분 0초 UTC)을 기준으로 특정 시점까지의 시간을 초로 표현
+기계의 관점에서는 연속된 시간에서 특정 지점을 하나의 큰 수로 표현하는 것이 가장 자연스러운 표현 방법
+- 팩토리 메서드 ofEpochSecond에 초를 넘겨줘서 Instant 클래스 인스턴스를 만들 수 있다
+- Instant 클래스는 나노초의 정밀도를 제공한다
+
+### Duration과 Period 정의
+
+- Temporal 인터스페이스는 특정 시간을 모델링하는 객체의 값을 어떻게 읽고 조작할지 정의한다
+- Duration클래스는 between으로 두시간 객체 사이의 지속시간을 만들수 있다
+```java
+Duration d1 = Duration.between(time1, time2);
+Duration d1 = Duration.between(dateTime1, dateTime2);
+Duration d1 = Duration.between(instant1, instant2);
+```
+- LocalDateTime은 사람이 사용하도록, Instant는 기계가 사용하도록 만들어졌다
+- Period 클래스의 팩토리 메서드 between을 이용하면 두 LocalDate의 차이를 확인할 수 있다
+```java
+Period tenDays = Period.between(LocalDate.of(2017, 9, 11), LocalDate.of(2017, 9, 21));
+```
+- Duration과 Period 클래스는 자신의 인스턴스를 만들 수 있도록 다양한 팩토리 메서드를 제공한다.
+```java
+Duration threeMinutes = Duration.ofMinutes(3);
+Duration threeMinutes = Duration.of(3, ChronoUnit.MINUTES);
+
+Period tenDays = Period.ofDays(10);
+Period threeWeeks = Period.ofWeeks(3);
+```
+- 지금까지 살펴본 모든 클래스는 불변이다. 불변 클래스는 함수형 프로그래밍과 스레드 세이프하여 도메인 모델의 일관성을 유지하는데 좋은 특성이다
+- 새로운 날짜와 시간 API에서는 변경된 객체 버전을 만들 수 있는 메서드를 제공한다
+
+### 날짜 조정, 파싱, 포매팅
+
+- withAttribte 메서드로 기존의 LocalDate를 바꾼 버전을 직접 간단히 만들 수 있다
+- 모든 메서드는 기존 객체를 변경하지 않는다
+```java
+/* 절대적인 방식으로 LocalDate의 속성 바꾸기 */
+
+LocalDate date1 = LocalDate.of(2017, 9, 21); // 2017-09-21
+LocalDate date2 = date1.withYear(2011); // 2011-09-21
+LocalDate date3 = date2.withDayOfMonth(25); // 2011-09-25
+LocalDate date4 = date3.with(ChronoField.MONTH_OF_YEAR, 2); // 2011-02-25
+```
+
+- 마지막 행에서 보여주는 것처럼 첫 번째 인수로 TemporalField를 갖는 메서드를 사용하면 조금더 범용적으로 날짜를 변경할 수 있다
+- 선언형으로 LocalDate를 사용하는 방법도 존재한다
+```java LocalDate date1 = LocalDate.of(2017, 9, 21); // 2017-09-21
+LocalDate date2 = date1.plusWeek(1); // 2017-09-28
+LocalDate date3 = date2.minusYear(6); // 2011-09-28
+LocalDate date4 = date3.plus(6, ChronoUnit.MONTHS); // 2012-03-28
+```
+### TemporalAdjusters 사용하기
+
+- Java는 다음주 일요일, 돌아오는 평일등 복잡한 날짜 조정기능을 지원한다
+- 날짜와 시간 API는 다양한 상황에서 사용할 수 있도록 TemporalAdjuster를 제공한다
+```java
+LocalDate date1 = LocalDate.of(2014, 3, 18);
+LocalDate date2 = date1.with(nextOrSame(DayOfWeek.SUNDAY));
+LocalDate date3 = date2.with(lastDayOfMonth());
+```
+
+- 필요한 기능이 정의되어 있지 않은 때는 커스텀 TemporalAdjuster 를 구현할 수 있다
+```java
+@FunctionalInterface
+public interface TemporalAdjuster {
+  Temporal adjustInto(Temporal temporal);
+}
+```
+
+- 함수형 인터페이스로 되어 있으므로 adjustInto만 구현하면 된다
+```java
+// Working Day 만 구하는 커스텀 TemporalAdjuster
+@Override
+public Temporal adjustInto(Temporal temporal) {
+    DayOfWeek today = DayOfWeek.of(temporal.get(ChronoField.DAY_OF_WEEK)); // 현재 날짜 읽기
+    int dayToAdd = 1;
+    if (today == DayOfWeek.FRIDAY) {    // <- 금요일이면 3일 추가
+        dayToAdd = 3;
+    } else if (today == DayOfWeek.SATURDAY) {    // <- 토요일이면 2일 추가
+        dayToAdd = 2;
+    }
+    return temporal.plus(dayToAdd, ChronoUnit.DAYS);    // 적정한 날 수 만큼 추가된 날짜를 반환
+}
+```
+
+### 날짜와 시간 객체 출력과 파싱
+- 날짜와 시간 관련해서 포매팅과 파싱은 필수이다
+- DateTimeFormmatter 클래스는 BASIC_ISO_DATE와 ISO_LOCAL_DATE등의 상수를 미리 정의하고 있다
+- DateTimeFormmatter를 활용하여 날짜나 시간을 특정 형식의 문자열로 만들 수 있다
+```java
+LocalDate date = LocalDate.of(2014, 3, 18);
+date.format(DateTimeFormatter.BASIC_ISO_DATE); // 20140318
+date.format(DateTimeFormatter.ISO_LOCAL_DATE); // 2014-03-18
+```
+
+- 반대로 날짜나 시간을 표현하는 문자열을 파싱하여 날짜 객체를 다시 만들 수 있다
+
+```java
+LocalDate parse = LocalDate.parse("20140318", DateTimeFormatter.BASIC_ISO_DATE);
+LocalDate parse2 = LocalDate.parse("2014-03-18", DateTimeFormatter.ISO_LOCAL_DATE);
+```
+
+- DateTimeFormmatter는 `Thread safe`한 클래스이며 특정 패턴으로 포매터를 만들 수 있는 정적 팩토리 메서드도 제공한다.
+```java
+DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+LocalDate localDate = LocalDate.of(2014, 3, 18);
+String formattedDate = localDate.format(formatter);
+LocalDate parse1 = LocalDate.parse(formattedDate, formatter);
+```
+
+- 지역화 된 DateTimeFormatter도 만들수 있으며 조금더 복합적인 포매터를 만들기 위해 Builter를 사용할 수 있다
+```java
+// d. MMMM yyyy
+
+DateTimeFormatter italianFormatter = new DateTimeFormatterBuilder()
+                .appendText(ChronoField.DAY_OF_MONTH)
+                .appendLiteral(". ")
+                .appendText(ChronoField.MONTH_OF_YEAR)
+                .appendLiteral(" ")
+                .appendText(ChronoField.YEAR)
+                .parseCaseInsensitive() // 정해진 형식과 정확하게 일치하지 않아도 해석가능
+                .toFormatter(Locale.ITALIAN);
+```
+
+### 정리
+- Java 8 이전에서 제공하는 기존 Date 클래스와 관련 클래스는 결함이 존재했다
+- 새로운 날짜와 시간 API에서 날짜와 시간 객체는 모두 불변클래스이다
+- 새로운 API는 각각 사람과 기계가 편리하게 날짜와 시간 정보를 관리할 수 있으며 기존 인스턴스를 변환하지 않도록 처리 결과로 새로운 인스턴스가 생성된다
+- TemporalAdjuster를 이용하면 단순히 값을 바꾸는 것 이상의 복잡한 동작을 수행할수 있으며 자신만의 커스텀 날짜 변환 기능을 정의할 수 있다
+- 날짜와 시간 객체를 특정 포맷으로 출력하고 파싱하는 포매터를 정의 할 수 있다. 패턴을 이용할 수 있고 포매터는 스레드 세이프하다
+- 특정 지역/장소에 상대적인 시간대 또는 UTC/GMT 기준 오프셋을 이용해 시간대를 정의할 수 있다
+- ISO-8601 표준 시스템을 준수하지 않는 캘린더 시스템도 이용할 수 있다
+
+## Chapter13 디폴트 메서드
+
+전통적인 자바에서 인터페이스와 관련 메서드는 한 몸처럼 구성된다
+인터페이스를 구현하는 클래스는 인터페이스에서 정의하는 모든 메서드 구현을 제공하거나 슈퍼클래스의 구현을 상속받아야 한다
+
+자바8 API에도 List 인터페이스에 sort 같은 메서드를 추가했다면 모든 클래스의 구현도 고쳐야 하는 문제가 발생한다
+
+- 자바 8에서는 기본 구현을 포함하는 인터페이스를 정의하는 두 가지 방법을 제공
+- 인터페이스 내부 **정적 메서드**를 사용
+- 기본 구현을 제공할 수 있도록 **디폴트 메서드** 기능을 사용하는 것
+
+### 변화하는 API
+API를 바꾸는 것이 왜 어려운지 예제를 통해 살펴본다
+
+### API 버전 1
+- 모양의 크기를 조절하는데 필요한 `setWidth, setHeight, getWidth, setAbsoluteSize` 등의 메서드를 정의하는 Resizable 인터페이스
+- Resizable 인터페이스를 구현하는 Ellipse라는 클래스
+
+```java
+public interface Resizable extends Drawable {
+    int getWidth();
+    int getHeight();
+    void setWidth(int width);
+    void setHeight(int height);
+    void setAbsoluteSize(int width, int height);
+}
+```
+
+### API 버전2
+- Resizable을 구현하는 `Square`와 `Rectangle` 구현을 개선해달라는 요청
+
+```java
+public interface Resizable extends Drawable {
+    int getWidth();
+    int getHeight();
+    void setWidth(int width);
+    void setHeight(int height);
+    void setAbsoluteSize(int width, int height);
+    void setRelativeSize(int wFactor, int hFactor);    // <- 추가된 메서드
+}
+```
+
+### 사용자가 겪는 문제
+
+- Resizable을 고치면 Resizable을 구현하는 모든 클래스는 추가된 메소드 또는 변경된 메소드를 구현해야 한다
+- 인터페이스에 새로운 메서드를 추가하면 `바이너리 호환성`은 유지되지만 `컴파일 단계에서 에러`가 발생할 것이다
+- 공개된 API를 고치면 `기존 버전과의 호환성 문제가 발생`했다
+디폴트 메서드가 나온 이후로는 이러한 문제들을 해결할 수 있게 되었다
+
+> 바이너리 호환성: 인터페이스에 메서드를 추가했을 때 추가된 메서드를 호출하지 않는 한 문제가 일어나지 않는 것
+ 
+> 소스 호환성: 코드를 고쳐도 기존 프로그램을 성공적으로 재컴파일할 수 있음 -> 인터페이스에 메서드를 추가하면 소스 호환성이 아님 -> 추가한 메서드를 구현하도록 클래스 수정이 일어남
+
+> 동작 호환성: 코드를 바꾼 다음에도 같은 입력값이 주어지면 프로그램이 같은 동작을 실행 -> 인터페이스에 메서드를 추가하더라도 프로그램에서 추가된 메서드를 호출할 일은 없으므로 동작 호환성은 유지
+
+### 디폴트 메서드란 무엇인가?
+- 자바 8에서는 호환성을 유지하면서 API를 바꿀 수 있도록 새로운 기능인 디폴트 메서드를 제공
+
+```java
+public interface Sized { 
+  int size();
+  default boolean isEmpty() { // <- 디폴트 메서드
+    return size() == 0;
+  }
+}
+```
+- 디폴트 메서드는 추상 메서드에 해당하지 않으므로 **함수형 인터페이스**에는 여러 디폴트 메서드를 추가할 수 있다
+
+### 디폴트 메서드 활용 패턴
+
+디폴트 메서드를 이용하는 두가지 방식
+- 선택형 메서드 Optional Method
+- 동작 다중 상속 Multiple Inheritance of Behavior
+
+#### 선택형 메서드
+- 인터페이스를 구현하는 클래스에서 메서드의 내용이 비어있는 상황, 인터페이스에 정의된 메서드이지만 실제로 사용하지 않는 메서드라 빈 메서드를 정의해야 하는 상황
+- 디폴트 메서드를 이용하면 이러한 메서드에 기본 구현을 제공해줄 수 있다
+Iterator 인터페이스를 살펴보자
+```java
+interface Iterator<T> {
+  boolean hasNext();
+  T next();
+  default void remove() {
+    throw new UnsupportedOperationException();
+  }
+}
+```
+기본 구현이 제공되므로 빈 remove 메서드를 구현할 필요가 없어졌고, 불필요한 코드를 줄일 수 있다
+
+#### 동작 다중 상속
+
+디폴트 메서드를 이용하면 기존에는 불가능했던 동작 다중 상속 기능도 구현할 수 있다
+- 자바에서 클래스는 한 개의 클래스만 상속할 수 있지만 인터페이스는 여러 개 구현할 수 있다
+
+```java
+public class ArrayList<E> extends AbstractList<E>    // <- 한 개의 클래스를 상속
+ implements List<E>, RandomAeccess, Cloneable, Serialiizable {}    // <- 네 개의 인터페이스를 구현
+```
+
+- 다중 상속 형식
+    - ArrayList는 AbstractList, List, RandomAeccess, Cloneable, Serialiizable의 서브 형식이 된다
+    - Java8 에서는 인터페이스가 구현을 포함할 수 있으므로 클래스는 여러 인터페이스에서 동작을 상속받을 수 있다, 중복되지 않는 최소한의 인터페이스를 유지한다면 재사용과 조합을 쉽게 할 수 있다
+    - 
+#### 기능이 중복되지 않는 최소의 인터페이스
+
+- 기존의 코드를 재사용하며 새로운 기능을 제공할때 디폴트 메서드를 활용할 수 있음
+- 인터페이스를 조합해서 필요한 다양한 클래스를 구현할 수 있음
+
+### 해석 규칙
+만약 어떤 클래스가 같은 디폴트 메서드 시그니처를 포함하는 두 인터페이스를 구현하는 상황이라면?
+
+같은 시그니처를 갖는 디폴트 메서드를 상속받는 상황이 생길 수 있으며 이런 상황에서는 어떤 인터페이스의 디폴트 메서드를 사용하게 되는지, 자바 컴파일러가 이러한 충돌을 어떻게 해결하는지 설명한다
+
+#### 알아야 할 세 가지 해결 규칙
+
+1. 클래스가 항상 이긴다. 클래스나 슈퍼 클래스에서 정의한 메서드가 디폴트 메서드보다 우선권을 갖는다
+    - 클래스에서 오버라이드하는 것이 무조건 이긴다 
+2. 1번 규칙 이외의 상황에서는 서브 인터페이스가 이긴다
+    -  상속관계를 갖는 인터페이스에서 같은 시그니처를 갖는 메서드를 정의할 때는 서브 인터페이스가 이긴다
+        -  즉 B가 A를 상속받는다면 B가 A를 이긴다
+3. 디폴트 메서드의 우선순위가 결정되지 않았다면 여러 인터페이스를 상속받는 클래스가 명시적으로 디폴트 메서드를 오버라이드하고 호출해야 한다
+    - 디폴트 메서드가 같은 두 인터페이스 사이에 어떤 상속관계도 없다면 자바 컴파일러는 에러를 발생
+    - 명시적으로 어떤 인터페이스의 디폴트 메서드를 호출할 것인지 선택해야 함
+  
+### 정리
+- Java 8의 인터페이스는 구현 코드를 포함하는 디폴트 메서드, 정적 메서드를 정의할 수 있다
+- 디폴트 메서드의 정의는 defualt 키워드로 시작하며 일반 메서드처럼 바디를 갖는다
+- 공개된 인터페이스에 추상 메서드를 추가하면 소스 호환성이 깨진다
+- 디폴트 메서드를 사용하면 소스 호환성을 유지할 수 있다
+- 선택형 메서드와 동작 다중 상속에도 디폴트 메서드를 사용할 수 있다
+- 클래스가 같은 시그니처를 갖는 여러 디폴트 메서드를 상속하며 생기는 충돌 문제를 해결하는 규칙이 있다
+- 충돌 문제를 해결하는 규칙 3가지
 
