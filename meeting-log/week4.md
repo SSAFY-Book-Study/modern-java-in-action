@@ -68,6 +68,38 @@
 
 
 ---
+## 이슈
+
+1. 안건을 올린 이유 발표
+   
+```java
+public String getCarInsuranceName(Optional<Person> person) {
+ return person.flatMap(Person::getCar)
+ .flatMap(Car::getInsurance)
+ .map(Insurance::getName) // (1)
+ .orElse
+```
+
+(1)에서 Optional<Insurance>가 사용되어서 Optional<Optional<String>>가 반환될 줄 알았는데 Optional<String>이 반환된 이유를 알고싶습니다. Optional<Optional<>>로 반환되는지 Optional<>로 반환되는지 판단 기준을 알고 싶습니다.
+
+2. 안건에 대해 답변자 발표 및 설명 요약
+
+```java
+public<U> Optional<U> map(Function<? super T, ? extends U> mapper) { }
+public<U> Optional<U> flatMap(Function<? super T, Optional<U>> mapper) { }
+```
+
+- map
+  - 반환값은 U를 상속하는 클래스에 Optional을 감싸서 반환
+  - mapper의 function
+- flatMap
+  - mapper의 반환 타입 그대로 반환
+  
+4. Q n A 및 회의록 기록
+
+
+---
+---
 
 ## 이슈
 
