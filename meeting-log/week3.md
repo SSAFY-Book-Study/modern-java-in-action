@@ -245,3 +245,17 @@ Collectors 내부 메서드들이 정적 팩토리 메서드인 이유
 3. Q n A 및 회의록 기록
 - 왜 Map.of에서는 가변을 안썼을까?
 	- 추가 배열을 안 만드는 상황을 10개까지 만들어 놓았다.
+---
+## 이슈 [**HashTable vs ConcurrentHashMap**]
+
+1. 안건을 올린 이유 발표
+    - ConcurrentHashMap과 HashTable 사용 간 어떤 차이가 있고 성능이 좋은지 알고 싶었습니다.
+2. 안건에 대해 답변자 발표 및 설명 요약
+    - 자바가 발전해오면서 성능과 동시성에 대한 안정성까지 챙긴 것이 ConcurrentHashMap이다.
+    - 해쉬 테이블은 메서드 단위에 synchronize 사용
+    - 꼭 필요한 경우에만 synchronize 처리 효율적
+3. Q n A 및 회의록 기록
+- ConcurrentHashMap 널 값을 허용하지 않는 이유
+    - 일관성 유지
+    - Null Pointer 예방
+    - 일관성 유지를 단순화
