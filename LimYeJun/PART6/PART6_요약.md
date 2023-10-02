@@ -417,7 +417,100 @@ static <A, B, C> Function<A, C> compose(Function<B, C> g, Function<A, B> f) {
 - 콤비네이터는 둘 이상의 함수나 자료구조를 조합하는 함수형 개념
 
 
+## Chapter20 OOP와 FP의 조화: 자바와 스칼라 비교
 
+자바와 마찬가지로 스칼라는 컬렉션을 함수형으로 처리하는 개념(스트림과 비슷한 연산), 일급 함수, 디폴트 메서드 등을 제공한다
+하지만 스칼라는 자바에 비해 더 다양하고 심화된 함수형 기능을 제공한다
+스칼라와 자바에 적용된 함수형의 기능을 살펴보면서 자바의 한계가 무엇인지 확인할 수 있는 시간이 될 것이다
+
+### 함수
+스칼라의 함수는 어떤 작업을 수행하는 일련의 명령어 그룹
+자바에서는 클래스와 관련된 함수에 메서드라는 이름이 사용된다
+
+- 스칼라의 함수는 일급값
+- Integer, String처럼 함수를 인수로 전달하거나 결과로 반환하거나 변수에 저장할 수 있음
+```java
+def isJavaMentioned(tweet: String) : Boolen = tweet.contains("Java")
+def isShortTweet(tweet: String) : Boolean = tweet.lenght < 20
+```
+Boolean을 반환하는 프레디케이트로 표현
+
+### 익명 함수와 클로저
+스칼라도 익명 함수의 개념을 지원
+자바의 람다 표현식으로 함수형 인터페이스의 인스턴스를 만들 수 있다 비슷한 방식으로 스칼라도 익명 함수를 만들 수 있다
+```java
+val isLongTweet : String => Boolean =
+	(tweet : String) => tweet.length() > 60	// 익명함수
+```
+
+- 자바에서는 람다 표현식을 사용할 수 있도록 Predicate, Function, Consumer 등의 내장 함수형 인터페이스를 제공
+- 스칼라는 트레이트를 지원 (일단 트레이트는 인터페이스와 같다고 생각하자)
+
+클로저란 함수의 비지역 변수를 자유롭게 참조할 수 있는 함수의 인스턴스를 가리킴
+- 람다 표현식에는 람다가 정의된 메서드의 지역 변수를 고칠 수 없다는 제약 -> 암시적으로 final로 취급됨 -> 람다는 변수가 아닌 값을 닫는다
+
+스칼라의 익명 함수는 값이 아니라 변수를 캡처할 수 있음
+-> 지역 변수를 캡처하고 함수내에서 증가시킬 수 있음
+
+### 커링
+
+커링기법이란 x, y라는 두 인수를 가진 f라는 함수가 있을 때 이는 하나의 인수를 받는 g라는 함수 그리고 g라는 함수는 다시 나머지 인수를 받는 함수로 반환되는 상황으로 볼 수 있다는 것
+
+```java
+static int multiply(int x, int y) {
+	return x * y;
+}
+int r = multiply(2, 10);
+```
+이 함수는 전달된 모든 인수를 사용하는데, multiply 메서드를 분할할 수 있다
+
+```java
+static Function<Integer, Integer> multiplyCurry(int x) {
+	return (Integer y) -> x * y;
+}
+```
+multiplyCurry가 반환하는 함수는 x와 인수 y를 곱한 값을 캡처한다 다음처럼 map과 multiplyCurry를 연결해서 각 요소에 2를 곱할 수 있다
+
+```java
+Stream.of(1, 3, 5, 7)
+	.map(multiplyCurry(2))
+	.forEach(System.out::println);		// 2, 6, 10, 14
+```
+
+### 클래스와 트레이트
+
+스칼라의 클래스와 인터페이스는 자바에 비해 더 유연함을 제공한다
+
+#### 간결성을 제공하는 스칼라의 클래스
+
+스칼라는 완전한 객체지향 언어이므로 클래스를 만들고 객체로 인스턴스화할 수 있음
+스칼라에서는 생성자, 게터, 세터가 암시적으로 생성되므로 코드가 훨씬 단순해짐
+
+```java
+class Student(var name: String, var id: Int) // 클래스 선언
+val s = new Student("Raoul", 1);
+s.id = 1337;	
+```
+
+#### 스칼라 트레이트와 자바 인터페이스
+
+스칼라는 트레이트라는 유용한 추상 기능도 제공 -> 자바의 인터페이스를 대체
+- 트레이트는 다중 상속을 지원하므로 자바의 인터페이스와 디폴트 메서드 기능이 합쳐진 것으로 이해할 수 있다
+
+```java
+trait Sized {	
+  var size : Int = 0
+  def isEmpty() = size == 0
+}
+
+class Box extends Sized // 트레이트에서 상속받은 클래스
+
+class Box	// 상속받지 않고 인스턴스화할 때 트레이트를 조합하여 사용할 수 있음
+val b1 = new Box() with Sized // 객체를 인스턴스화 할 때 트레이트를 조합함
+println(b1.isEmpty()) // true
+val b2 = new Box()
+b2.isEmpty() // 컴파일 에러: Box 클래스 선언이 Sized를 상속하지 않음
+```
 
 
 
