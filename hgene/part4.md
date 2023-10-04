@@ -342,7 +342,9 @@ public Set<String> getCarInsuranceNames(List<Person> persons) {
 
 ### 4.3 자바 모듈 활용
 
-![IMG_6200DA713EB5-1.jpeg](4%E1%84%8C%E1%85%A1%E1%86%BC%20%E1%84%86%E1%85%A2%E1%84%8B%E1%85%B5%E1%86%AF%20%E1%84%8C%E1%85%A1%E1%84%87%E1%85%A1%E1%84%8B%E1%85%AA%20%E1%84%92%E1%85%A1%E1%86%B7%E1%84%81%E1%85%A6%20fb56bd22116a4dc0bf19100f8be8b19a/IMG_6200DA713EB5-1.jpeg)
+
+![IMG_6200DA713EB5-1](https://github.com/SSAFY-Book-Study/modern-java-in-action/assets/90823532/d0a0c268-3b9a-4c39-b589-1de97b9dea75)
+
 
 - 모듈 : Java 8에서 제공하는 새로운 구조 단위.
 - 모듈 디스크립터 : module-info.java에 저장된 바이너리 형식.
