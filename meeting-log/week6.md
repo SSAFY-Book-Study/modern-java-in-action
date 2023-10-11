@@ -194,3 +194,16 @@ eden과 survivor 왜 1개 2개인지
 3. Q n A 및 회의록 기록
 ---
 
+## 이슈
+
+1. 안건을 올린 이유 발표
+
+CPP에서는 데이터형은 Generic Type이 아닌 Primitive Type으로 쓰는데 이와 다르게 JAVA는 반대로 쓰는 이유와 반대로 썼을 때의 특징에 대해서 궁금합니다.
+
+2. 안건에 대해 답변자 발표 및 설명 요약
+
+첫번쨰로, 데이터형을 Primitive Type이 아닌 Generic Type를 쓰는 이유는 하위 호환성에 의의가 있다. 하위 호환성으로 인해 이전에 제네릭으로 사용되는 모든 것들은 Object로 변환할 수 있어야 하지만 primitive type은 그렇지 않기 때문에 제네릭을 컴파일 타임에 변환할 수 있도록 데이터형을 객체형으로 사용한다. 
+
+두번째로, Call by value 형태의 호출 방식을 가지는 JAVA와 다르게 CPP는 Call by reference 형태의 호출 방식으로 메모리에 접근이 가능하기 때문에 Primitive Type을 써도 무관하다. 즉, Java도 포인터가 없기 때문에 Call by referce 형태의 호출을 하는 것처럼 사용하기 위해 Generic Type형태로 사용한다.
+
+3. Q n A 및 회의록 기록
